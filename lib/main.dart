@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +24,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(backgroundHandler);
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -66,23 +68,28 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.of(context).pushNamed(routeFromMsg);
       }
     });
+    //
     // only work when app is in forground
     FirebaseMessaging.onMessage.listen((message) {
       if (message.notification != null) {
         print(message.notification!.body);
         print(message.notification!.title);
       }
-      LocalNotificationService.display(message);
+      LocalNotificationService().display(message);
     });
 
-    // when app is in background but opned and user tapsthat notification
+    // when app is in background in running state and user taps on that notification
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       if (message.notification != null) {
         print(message.notification!.body);
         print(message.notification!.title);
       }
-      final routeName = message.data['route'];
-      Navigator.of(context).pushNamed(routeName);
+      if (message.data.isNotEmpty) {
+        final routeName = message.data['route'];
+        Navigator.of(context).pushNamed(routeName);
+      } else {
+        print('route is null');
+      }
     });
   }
 
